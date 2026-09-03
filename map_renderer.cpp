@@ -30,7 +30,9 @@ vector<StopPtr> MapRenderer::SearchingEndStops(BusPtr bus) const {
     result.push_back(bus->stops.front());
 
     if (!bus->is_roundtrip && bus->stops.size() > 1) {
-        result.push_back(bus->stops.back());
+        if (bus->stops.front() != bus->stops.back()){
+             result.push_back(bus->stops.back());
+        }
     }
 
     return result;
@@ -77,10 +79,6 @@ string MapRenderer::GetColorString(const svg::Color& color) {
 
     throw invalid_argument("Unsupported color array size");
 }
-
-
-
-
 void MapRenderer::SetStops(StopPtr stop)
 {
     stops_.push_back(*stop);
@@ -128,7 +126,7 @@ void MapRenderer::CreateBusNameLabel(
     svg::Point pixel_pos = projector(stop->position);
 
     svg::Text label_underlayer_1;
-    //cerr << "Underlayer_color = " << settings.underlayer_color << "\n";
+
     label_underlayer_1.SetPosition(pixel_pos)
         .SetOffset(settings.bus_label_offset)
         .SetFontSize(settings.bus_label_font_size)
@@ -161,7 +159,6 @@ void MapRenderer::CreateBusNameLabel(
 
 void MapRenderer::AddCircles(svg::ObjectContainer& container, const TransportCatalogue& cat, SphereProjector& proj, RenderSettings& settings, vector<StopPtr> v)
 {
-    //SetRoute(cat);
     for (auto& stop : v) {
         svg::Point pixel_pos = proj(stop->position);
         svg::Circle circle;
@@ -200,12 +197,9 @@ void MapRenderer::RenderStopNamesOnCircles( // имена остановок н�
     svg::Text stop_name_text;
     stop_name_text.SetPosition(pix_pos)
         .SetOffset(settings.stop_label_offset)
-        //.SetStrokeColor(settings.underlayer_color)
-        //.SetStrokeWidth(settings.underlayer_width)
         .SetFontSize(settings.stop_label_font_size)
         .SetFontFamily("Verdana")
         .SetData(stop->name)
-        // .SetFontWeight("bold")
         .SetFillColor("black");
 
     doc.Add(move(stop_name_text));
@@ -296,23 +290,6 @@ svg::Color MapRenderer::GetCurrentColor(size_t color_index) { // получае�
     return current_color;
 }
 
-//void MakeUnique(vector<StopPtr>& vec) {
-//    if (vec.empty()) return;
-//
-//    // 1. Сначала сортируем по имени остановки
-//    sort(vec.begin(), vec.end(), [](const StopPtr lhs, const StopPtr rhs) {
-//        return lhs->name < rhs->name;
-//        });
-//
-//    // 2. Удаляем соседние дубликаты, сравнивая ИМЕНА
-//    auto last = unique(vec.begin(), vec.end(), [](const StopPtr lhs, const StopPtr rhs) {
-//        return lhs->name == rhs->name;
-//        });
-//
-//    // 3. Обрезаем вектор до нового размера
-//    vec.erase(last, vec.end());
-//}
-//
 
 void MapRenderer::RenderMap(const TransportCatalogue& cat)
 {
